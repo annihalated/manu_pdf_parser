@@ -1,15 +1,12 @@
 require 'pdf-reader'
 require 'axlsx'
-# HMM, considering moving this whole thing to work with axlsx
-def find_text(string, phrase1, phrase2)
+def find_text_between(string, phrase1, phrase2)
   string.split(phrase1).last.split(phrase2).first
 end
 x = 0 
 
 results = []
-# Iterate through each file
 Dir.foreach('./files') do |filename|
-  # Dir.foreach returns the directory name and the pathname to the previous directory
   next if filename == '.' or filename == '..'
   x = x + 1
 
@@ -18,19 +15,18 @@ Dir.foreach('./files') do |filename|
   text = reader.pages.map {|page| page.text}
   text = text.join
   citation = text.match('^([^\s]+)')
-  appellants = find_text(text, 'Appellants:', 'Vs.')
-  date_decided = find_text(text, 'Decided On:', 'Appellants:')
-  respondents = find_text(text, 'Respondent:', "Hon\'ble Judges/Coram:\n")
-  # Go to the judgment, 
+  appellants = find_text_between(text, 'Appellants:', 'Vs.')
+  date_decided = find_text_between(text, 'Decided On:', 'Appellants:')
+  respondents = find_text_between(text, 'Respondent:', "Hon\'ble Judges/Coram:\n")
   puts "----------------------------------------------------"
   if text.include?("Case Note:\n")
       puts "THE CASE NOTE HAS BEEN FOUND"
       if text.include?("ORDER\n")
           puts "THIS FILE IS AN ORDER"
-          casenote = find_text(text, "Case Note:\n", "ORDER\n")
+          casenote = find_text_between(text, "Case Note:\n", "ORDER\n")
       elsif text.include?("JUDGMENT\n")
           puts "THIS FILE IS A JUDGMENT"
-          casenote = find_text(text, "Case Note:\n", "JUDGMENT\n")
+          casenote = find_text_between(text, "Case Note:\n", "JUDGMENT\n")
       end
   else
       casenote = 'COULD NOT FIND CASE NOTE'
