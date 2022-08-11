@@ -37,7 +37,7 @@ Dir.foreach('./files') do |filename|
   puts "------------------------------------------------------"
 
   puts "#{x}: #{appellants} v. #{respondents} (#{citation})"
-  workbook = RubyXL::Parser.parse('./test.xlsx')
+  workbook = RubyXL::Parser.parse('./ouput.xlsx')
 
   worksheet = workbook[0]
   
@@ -46,6 +46,6 @@ Dir.foreach('./files') do |filename|
   worksheet.sheet_data[x][2].change_contents(respondents)
   worksheet.sheet_data[x][3].change_contents(casenote)
 
-  workbook.write("./test.xlsx")
+  workbook.write("./output.xlsx")
 
 end
