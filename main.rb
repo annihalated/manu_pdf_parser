@@ -1,18 +1,17 @@
-require 'rubyXL'
-require 'rubyXL/convenience_methods'
 require 'pdf-reader'
+require 'axlsx'
 # HMM, considering moving this whole thing to work with axlsx
 def find_text(string, phrase1, phrase2)
   string.split(phrase1).last.split(phrase2).first
 end
+x = 0 
 
-x = 0
-
+results = []
 # Iterate through each file
 Dir.foreach('./files') do |filename|
   # Dir.foreach returns the directory name and the pathname to the previous directory
   next if filename == '.' or filename == '..'
-  x+= 1
+  x = x + 1
 
   reader = PDF::Reader.new("./files/#{filename}")
   
@@ -20,6 +19,7 @@ Dir.foreach('./files') do |filename|
   text = text.join
   citation = text.match('^([^\s]+)')
   appellants = find_text(text, 'Appellants:', 'Vs.')
+  date_decided = find_text(text, 'Decided On:', 'Appellants:')
   respondents = find_text(text, 'Respondent:', "Hon\'ble Judges/Coram:\n")
   # Go to the judgment, 
   puts "----------------------------------------------------"
@@ -37,16 +37,21 @@ Dir.foreach('./files') do |filename|
   end
   puts "------------------------------------------------------"
 
-  puts "#{x}: #{appellants} v. #{respondents} (#{citation})"
-  workbook = RubyXL::Parser.parse('./ouput.xlsx')
+  puts "#{x}: #{appellants} v. #{respondents} (#{citation}), #{date_decided}"
+  puts "#{casenote}"
+  current_result = [x, date_decided, citation, appellants, respondents, casenote]
+  results.push(current_result)
 
-  worksheet = workbook[0]
-  
-  worksheet.sheet_data[x][0].change_contents(citation)
-  worksheet.sheet_data[x][1].change_contents(appellants)
-  worksheet.sheet_data[x][2].change_contents(respondents)
-  worksheet.sheet_data[x][3].change_contents(casenote)
-
-  workbook.write("./output.xlsx")
-
+  if x > 5
+    break
+  end
 end
+
+Axlsx::Package.new do |p|
+  p.workbook.add_worksheet(:name => "Cases") do |sheet|
+    results.each do |result|
+      sheet.add_row(result)
+    end
+  end
+  p.serialize('output.xlsx')
+end  

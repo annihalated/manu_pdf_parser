@@ -1,4 +1,4 @@
 source "https://rubygems.org"
 
-gem 'rubyXL'
+gem 'axlsx'
 gem 'pdf-reader'
