@@ -1,5 +1,6 @@
 require 'pdf-reader'
 require 'axlsx'
+
 def find_text_between(string, phrase1, phrase2)
   string.split(phrase1).last.split(phrase2).first
 end
@@ -41,7 +42,7 @@ Dir.foreach('./files') do |filename|
 end
 
 Axlsx::Package.new do |p|
-  p.workbook.add_worksheet(:name => "Cases") do |sheet|
+  p.workbook.add_worksheet(name: "cases") do |sheet|
     results.each do |result|
       sheet.add_row(result)
     end
