@@ -1,44 +1,51 @@
 require 'rubyXL'
 require 'rubyXL/convenience_methods'
 require 'pdf-reader'
-
-reader = PDF::Reader.new("./files/M_Vijaya_vs_Chairman_and_Managing_Director_Singarea010574COM625429.pdf")
-
-# Find all text between two phrases in a string
 def find_text(string, phrase1, phrase2)
   string.split(phrase1).last.split(phrase2).first
 end
 
 x = 0
-# loop through the filename of every file in a folder, and extract the text from each file, and iterate a variable x to count the number of files    
 
+# Iterate through each file
 Dir.foreach('./files') do |filename|
-    x+= 1
+    # Dir.foreach returns the directory name and the pathname to the previous directory
     next if filename == '.' or filename == '..'
+    x+= 1
+
     reader = PDF::Reader.new("./files/#{filename}")
-    first_page=reader.page(1).text
-    citation = first_page.match('^([^\s]+)')
-    appellants = find_text(first_page, 'Appellants:', 'Vs.')
-    respondents = find_text(first_page, 'Respondent:', 'Hon\'ble Judges/Coram:')
-    if first_page.include?('Case Note:')
-        casenote = find_text(first_page, 'Case Note:', 'JUDGMENT')
+    
+    text = reader.pages.map {|page| page.text}
+    text = text.join
+    citation = text.match('^([^\s]+)')
+    appellants = find_text(text, 'Appellants:', 'Vs.')
+    respondents = find_text(text, 'Respondent:', "Hon\'ble Judges/Coram:\n")
+    # Go to the judgment, 
+    puts "----------------------------------------------------"
+    if text.include?("Case Note:\n")
+        puts "THE CASE NOTE HAS BEEN FOUND"
+        if text.include?("ORDER\n")
+            puts "THIS FILE IS AN ORDER"
+            casenote = find_text(text, "Case Note:\n", "ORDER\n")
+        elsif text.include?("JUDGMENT\n")
+            puts "THIS FILE IS A JUDGMENT"
+            casenote = find_text(text, "Case Note:\n", "JUDGMENT\n")
+        end
     else
-        casenote = ''
+        casenote = 'COULD NOT FIND CASE NOTE'
     end
-    puts "COUNT #{x}"
-    # puts "----------------"
-    puts "Citation: #{citation}"
-    puts "Appellants: #{appellants}"
-    puts "Respondents: #{respondents}"
-    puts "Case Note: #{casenote}"
-end 
+    puts "------------------------------------------------------"
 
+    puts "#{x}: #{appellants} v. #{respondents} (#{citation})"
+    workbook = RubyXL::Parser.parse('./test.xlsx')
 
-# This is the worksheet stuff, we'll get to it soon enough
-# ----------------------------------------------------------
+    worksheet = workbook[0]
+    worksheet[x][1] = citation
+    worksheet[x][2] = appellants
+    worksheet[x][3] = respondents
+    worksheet[x][4] = casenote
 
-# workbook = RubyXL::Parser.parse("./cases.xlsx")
-# worksheet = workbook[0]
-# cell = worksheet.cell_at('C21')
-# puts "This document has #{pdf.pages.size} pages"
-# puts cell.value
+    worksheet.reload
+    
+    workbook.write("./test.xlsx")end 
+
