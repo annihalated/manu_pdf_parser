@@ -1,6 +1,7 @@
 require 'rubyXL'
 require 'rubyXL/convenience_methods'
 require 'pdf-reader'
+# HMM, considering moving this whole thing to work with axlsx
 def find_text(string, phrase1, phrase2)
   string.split(phrase1).last.split(phrase2).first
 end
