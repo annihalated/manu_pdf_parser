@@ -38,9 +38,6 @@ Dir.foreach('./files') do |filename|
   current_result = [x, date_decided, citation, appellants, respondents, casenote]
   results.push(current_result)
 
-  if x > 5
-    break
-  end
 end
 
 Axlsx::Package.new do |p|
