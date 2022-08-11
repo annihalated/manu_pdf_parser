@@ -1,5 +1,5 @@
 require 'pdf-reader'
-require 'axlsx'
+require 'csv'
 
 def find_text_between(string, phrase1, phrase2)
   string.split(phrase1).last.split(phrase2).first
@@ -7,11 +7,11 @@ end
 x = 0 
 
 results = []
-Dir.foreach('./files') do |filename|
+Dir.glob('./files/*') do |filename|
   next if filename == '.' or filename == '..'
   x = x + 1
-
-  reader = PDF::Reader.new("./files/#{filename}")
+  
+  reader = PDF::Reader.new(filename)
   
   text = reader.pages.map {|page| page.text}
   text = text.join
@@ -38,14 +38,13 @@ Dir.foreach('./files') do |filename|
   puts "#{casenote}"
   current_result = [x, date_decided, citation, appellants, respondents, casenote]
   results.push(current_result)
-
 end
 
-Axlsx::Package.new do |p|
-  p.workbook.add_worksheet(name: "cases") do |sheet|
-    results.each do |result|
-      sheet.add_row(result)
-    end
+# Put each item in results as a raw  in a CSV file, with result values in individual columns
+
+CSV.open("results.csv", "wb") do |csv|
+  csv << ["File Number", "Date Decided", "Citation", "Appellants", "Respondents", "Case Note"]
+  results.each do |result|
+    csv << result
   end
-  p.serialize('output.xlsx')
-end  
+end
