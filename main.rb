@@ -1,50 +1,26 @@
-require 'pdf-reader'
-require 'csv'
-
-def find_text_between(string, phrase1, phrase2)
-  string.split(phrase1).last.split(phrase2).first
-end
-x = 0 
+require 'progress_bar'
+require_relative 'helpers'
 
 results = []
-Dir.glob('./files/*') do |filename|
-  next if filename == '.' or filename == '..'
-  x = x + 1
+dir = './files/'
+
+bar = ProgressBar.new(count_files(dir))
+
+Dir.glob(dir + '*') do |file|
+  next if file == '.' or file == '..'
   
-  reader = PDF::Reader.new(filename)
-  
-  text = reader.pages.map {|page| page.text}
-  text = text.join
+  text = get_full_text(file)
   citation = text.match('^([^\s]+)')
   appellants = find_text_between(text, 'Appellants:', 'Vs.')
   date_decided = find_text_between(text, 'Decided On:', 'Appellants:')
   respondents = find_text_between(text, 'Respondent:', "Hon\'ble Judges/Coram:\n")
-  puts "----------------------------------------------------"
-  if text.include?("Case Note:\n")
-      puts "THE CASE NOTE HAS BEEN FOUND"
-      if text.include?("ORDER\n")
-          puts "THIS FILE IS AN ORDER"
-          casenote = find_text_between(text, "Case Note:\n", "ORDER\n")
-      elsif text.include?("JUDGMENT\n")
-          puts "THIS FILE IS A JUDGMENT"
-          casenote = find_text_between(text, "Case Note:\n", "JUDGMENT\n")
-      end
-  else
-      casenote = 'COULD NOT FIND CASE NOTE'
-  end
-  puts "------------------------------------------------------"
+  casenote = get_casenote(text)
 
-  puts "#{x}: #{appellants} v. #{respondents} (#{citation}), #{date_decided}"
-  puts "#{casenote}"
-  current_result = [x, date_decided, citation, appellants, respondents, casenote]
+  puts "#{appellants} v. #{respondents} (#{citation}), #{date_decided}"
+  current_result = [date_decided, citation, appellants, respondents, casenote]
   results.push(current_result)
+
+  bar.increment!
 end
 
-# Put each item in results as a raw  in a CSV file, with result values in individual columns
-
-CSV.open("results.csv", "wb") do |csv|
-  csv << ["File Number", "Date Decided", "Citation", "Appellants", "Respondents", "Case Note"]
-  results.each do |result|
-    csv << result
-  end
-end
+save_to_csv(results, "results.csv")

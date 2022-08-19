@@ -1,4 +1,5 @@
 files/
-cases.xlsx
-test.xlsx
-.DS_Store
+*.xlsx
+*.csv
+*.pdf
+*.lock
