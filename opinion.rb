@@ -36,7 +36,7 @@ class Opinion
       casenote = 'COULD NOT FIND CASE NOTE'
     end
 
-    casenote.split.join(" ")
+    casenote
   end
 
   def is_order?
