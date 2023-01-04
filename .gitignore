@@ -3,3 +3,4 @@ files/
 *.csv
 *.pdf
 *.lock
+.DS_Store
