@@ -9,11 +9,21 @@ class Opinion
 
   def text
     text = @reader.pages.map {|page| page.text}
-    text.join
+    text = text.join
+    text = text.gsub(/[,]/ ,"")
+    text
   end
 
   def citation
-    @text.match('^([^\s]+)')
+    @text.match('^([^\s]+)').to_s.strip
+  end
+
+  def forum
+    @text.match('(?:\r\n?|\n){2}(.+)').to_s.strip
+  end
+
+  def case_number
+    @text.match('^(?=.*(No\.|Nos\.) ).*$').to_s.strip
   end
 
   def appellants

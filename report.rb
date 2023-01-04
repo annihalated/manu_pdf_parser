@@ -15,7 +15,7 @@ class Report
       next if file == '.' or file == '..'
       opinion = Opinion.new(file)
       puts "#{opinion.appellants} v. #{opinion.respondents} (#{opinion.citation}), #{opinion.date_decided}"
-      @results.push([opinion.date_decided, opinion.citation, opinion.appellants, opinion.respondents, opinion.casenote])
+      @results.push([opinion.date_decided, opinion.citation, opinion.forum, opinion.case_number, opinion.appellants, opinion.respondents, opinion.casenote, opinion.text])
       bar.increment!
     end
 
@@ -24,7 +24,7 @@ class Report
 
   def to_csv
     CSV.open("results.csv", "wb") do |csv|
-      csv << ["Date Decided", "Citation", "Appellants", "Respondents", "Case Note"]
+      csv << ["Date Decided", "Citation", "Forum", "Case Number", "Appellants", "Respondents", "Case Note", "Full Text"]
       @results.each do |item|
         csv << item
       end
